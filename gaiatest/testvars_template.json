@@ -9,5 +9,9 @@
   "marketplace": {
     "username": "",
     "password": ""
+  },
+  "facebook": {
+    "username": "",
+    "password": ""
   }
 }
