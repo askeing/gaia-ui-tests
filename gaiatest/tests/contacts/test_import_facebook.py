@@ -28,6 +28,11 @@ class TestContacts(GaiaTestCase):
 
     def setUp(self):
         GaiaTestCase.setUp(self)
+        # this test should have wifi connection and facebook information
+        self.assertTrue(len(self.testvars['wifi']) > 0, "No wifi setting in testvars.")
+        self.assertTrue(len(self.testvars['facebook']['username']) > 0, "No facebook username setting in testvars.")
+        self.assertTrue(len(self.testvars['facebook']['password']) > 0, "No facebook password setting in testvars.")
+
         # enable wifi
         self.data_layer.enable_wifi()
         self.data_layer.connect_to_wifi(self.testvars['wifi'])
