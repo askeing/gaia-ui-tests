@@ -2,21 +2,22 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-import time
 from gaiatest import GaiaTestCase
 
 
 class TestContacts(GaiaTestCase):
 
+    # settings section
     _loading_overlay = ('id', 'loading-overlay')
     _contacts_items_locator = ("css selector", "li.contact-item")
     _settings_button_locator = ("id", "settings-button")
     _settings_close_button_locator = ("id", "settings-close")
     _check_fb_span_locator = ("id", "span-check-fb")
     _contacts_status_message = ("id", "statusMsg")
-    _iframe_selector = ("css selector", "iframe")
+
+    # facebook section
+    _facebook_login_iframe_locator = ('css selector', 'iframe[data-url*="m.facebook.com/login.php"]')
     _facebook_import_iframe_locator = ('css selector', 'iframe[src="fb_import.html"]')
-    _facebook_login_url = "m.facebook.com/login.php"
     _facebook_login_name_locator = ("css selector", "div#u_0_0 input")
     _facebook_login_pw_locator = ("css selector", "div#u_0_1 input")
     _facebook_login_button_locator = ("css selector", "button[name=login]")
@@ -66,13 +67,8 @@ class TestContacts(GaiaTestCase):
 
         # switch to facebook login frame
         self.marionette.switch_to_frame()
-        # need to wait device connect to facebook...
-        time.sleep(10)
-        browser_frames = self.marionette.find_elements(*self._iframe_selector)
-        for browser_frame in browser_frames:
-            if self._facebook_login_url in browser_frame.get_attribute("data-url"):
-                self.marionette.switch_to_frame(browser_frame)
-                break
+        facebook_login_iframe = self.wait_for_element_present(*self._facebook_login_iframe_locator)
+        self.marionette.switch_to_frame(facebook_login_iframe)
 
         # login to facebook, due to the permission-allow page only display once, skip this step here
         self.wait_for_element_displayed(*self._facebook_login_name_locator)
@@ -86,29 +82,27 @@ class TestContacts(GaiaTestCase):
         self.marionette.switch_to_frame()
         self.marionette.switch_to_frame(self.app.frame)
 
-        # need to wait device connect to facebook...
-        time.sleep(10)
         # switch to facebook import page to select the friends
-        self.marionette.switch_to_frame(self.marionette.find_element(*self._facebook_import_iframe_locator))
+        facebook_import_iframe = self.wait_for_element_present(*self._facebook_import_iframe_locator)
+        self.marionette.switch_to_frame(facebook_import_iframe)
         # select one friend (first) from facebook
         contact_name = ""
         self.wait_for_element_displayed(*self._facebook_friends_check_items_locator)
         facebook_friends_check_items = self.marionette.find_elements(*self._facebook_friends_check_items_locator)
         facebook_friends_check_items_inputs = self.marionette.find_elements(*self._facebook_friends_check_items_inputs_locator)
-        if len(facebook_friends_check_items) > 0:
-            facebook_friends_check_items[0].text
-            self.marionette.tap(facebook_friends_check_items[0])
-            contact_name_item = self.marionette.find_element(*self._facebook_friends_check_items_name_locator)
-            contact_name = contact_name_item.text
-            facebook_friends_import_button = self.marionette.find_element(*self._facebook_friends_import_button_locator)
-            self.marionette.tap(facebook_friends_import_button)
-            # time issue, need to wait device connect to fb...
+        # Assume that ther will be more than 0 friends
+        facebook_friends_check_items[0].text
+        self.marionette.tap(facebook_friends_check_items[0])
+        contact_name_item = self.marionette.find_element(*self._facebook_friends_check_items_name_locator)
+        contact_name = contact_name_item.text
+        facebook_friends_import_button = self.marionette.find_element(*self._facebook_friends_import_button_locator)
+        self.marionette.tap(facebook_friends_import_button)
+        # time issue, need to wait device connect to fb...
 
         # switch to contacts app
         self.marionette.switch_to_frame()
         self.marionette.switch_to_frame(self.app.frame)
-        self.wait_for_element_displayed(*self._settings_button_locator)
-        self.wait_for_element_displayed(*self._contacts_status_message)
+        self.wait_for_element_displayed(*self.create_contact_locator(contact_name))
         contact_item = self.marionette.find_element(*self.create_contact_locator(contact_name))
 
         # get the contact items' number after import facebook contacts
