@@ -91,7 +91,6 @@ class TestContacts(GaiaTestCase):
         facebook_friends_check_items = self.marionette.find_elements(*self._facebook_friends_check_items_locator)
         facebook_friends_check_items_inputs = self.marionette.find_elements(*self._facebook_friends_check_items_inputs_locator)
         # Assume that ther will be more than 0 friends
-        facebook_friends_check_items[0].text
         self.marionette.tap(facebook_friends_check_items[0])
         contact_name_item = self.marionette.find_element(*self._facebook_friends_check_items_name_locator)
         contact_name = contact_name_item.text
