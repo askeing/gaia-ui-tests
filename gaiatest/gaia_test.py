@@ -49,6 +49,9 @@ class GaiaApp(object):
         self.name = name
         self.origin = origin
 
+    def __eq__(self, other):
+        return self.__dict__ == other.__dict__
+
 
 class GaiaApps(object):
 
@@ -232,8 +235,8 @@ class GaiaData(object):
         self.marionette.execute_script('GaiaDataLayer.deleteAllAlarms();')
 
     def kill_active_call(self):
-        self.marionette.execute_script("var telephony = window.navigator.mozTelephony; " +\
-                                   "if(telephony.active) telephony.active.hangUp();")
+        self.marionette.execute_script("var telephony = window.navigator.mozTelephony; " +
+                                       "if(telephony.active) telephony.active.hangUp();")
 
 
 class GaiaDevice(object):
@@ -315,7 +318,8 @@ class GaiaTestCase(MarionetteTestCase):
         self.marionette.__class__ = type('Marionette', (Marionette, MarionetteTouchMixin), {})
 
         self.device = GaiaDevice(self.marionette)
-        self.device.restart_b2g()
+        if self.device.is_android_build:
+            self.device.restart_b2g()
 
         self.marionette.setup_touch()
 
@@ -445,6 +449,12 @@ class GaiaTestCase(MarionetteTestCase):
             self.marionette.find_element(by, locator)
             return True
         except:
+            return False
+
+    def is_element_displayed(self, by, locator):
+        try:
+            return self.marionette.find_element(by, locator).is_displayed()
+        except (NoSuchElementException, ElementNotVisibleException):
             return False
 
     def tearDown(self):
