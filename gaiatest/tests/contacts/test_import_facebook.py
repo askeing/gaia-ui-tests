@@ -16,8 +16,8 @@ class TestContacts(GaiaTestCase):
     _contacts_status_message = ("id", "statusMsg")
 
     # facebook section
-    _facebook_login_iframe_locator = ('css selector', 'iframe[data-url*="m.facebook.com/login.php"]')
-    _facebook_import_iframe_locator = ('css selector', 'iframe[src="fb_import.html"]')
+    _facebook_login_iframe_locator = ('css selector', 'iframe[data-url*="m.facebook.com/login.php"]', 60)
+    _facebook_import_iframe_locator = ('css selector', 'iframe[src="fb_import.html"]', 300)
     _facebook_login_name_locator = ("css selector", "div#u_0_0 input")
     _facebook_login_pw_locator = ("css selector", "div#u_0_1 input")
     _facebook_login_button_locator = ("css selector", "button[name=login]")
