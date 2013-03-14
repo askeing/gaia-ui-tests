@@ -457,6 +457,14 @@ class GaiaTestCase(MarionetteTestCase):
         except (NoSuchElementException, ElementNotVisibleException):
             return False
 
+    def is_upright(self):
+        height = self.marionette.execute_script('return window.screen.height')
+        width = self.marionette.execute_script('return window.screen.width')
+        if height > width:
+            return True
+        else:
+            return False
+
     def tearDown(self):
         if any(sys.exc_info()):
             # test has failed, gather debug
