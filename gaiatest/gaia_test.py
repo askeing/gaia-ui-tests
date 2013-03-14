@@ -7,6 +7,7 @@ import json
 import os
 import sys
 import time
+import logging
 
 from marionette import MarionetteTestCase
 from marionette import Marionette
@@ -459,6 +460,10 @@ class GaiaTestCase(MarionetteTestCase):
 
     def tearDown(self):
         if any(sys.exc_info()):
+            logger = logging.getLogger('gaiatest')
+            logger.setLevel(logging.INFO)
+            logger.addHandler(logging.StreamHandler())
+
             # test has failed, gather debug
             test_class, test_name = self.marionette.test_name.split()[-1].split('.')
             xml_output = self.testvars.get('xml_output', None)
@@ -468,17 +473,26 @@ class GaiaTestCase(MarionetteTestCase):
 
             # screenshot
             with open(os.path.join(debug_path, '%s_screenshot.png' % test_name), 'w') as f:
-                # TODO: Bug 818287 - Screenshots include data URL prefix
-                screenshot = self.marionette.screenshot()[22:]
-                f.write(base64.decodestring(screenshot))
+                try:
+                    # TODO: Bug 818287 - Screenshots include data URL prefix
+                    screenshot = self.marionette.screenshot()[22:]
+                    f.write(base64.decodestring(screenshot))
+                except:
+                    logger.info('Can not save screenshot of %s.' % test_name)
 
             # page source
             with open(os.path.join(debug_path, '%s_source.txt' % test_name), 'w') as f:
-                f.write(self.marionette.page_source.encode('utf-8'))
+                try:
+                    f.write(self.marionette.page_source.encode('utf-8'))
+                except:
+                    logger.info('Can not save page source of %s.' % test_name)
 
             # settings
             with open(os.path.join(debug_path, '%s_settings.json' % test_name), 'w') as f:
-                f.write(json.dumps(self.data_layer.all_settings))
+                try:
+                    f.write(json.dumps(self.data_layer.all_settings))
+                except:
+                    logger.info('Can not save settings of %s.' % test_name)
 
         self.lockscreen = None
         self.apps = None
