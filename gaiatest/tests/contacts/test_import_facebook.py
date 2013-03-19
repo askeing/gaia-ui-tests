@@ -8,31 +8,30 @@ from gaiatest import GaiaTestCase
 class TestContacts(GaiaTestCase):
 
     # settings section
-    _loading_overlay = ('id', 'loading-overlay')
-    _contacts_items_locator = ("css selector", "li.contact-item")
-    _settings_button_locator = ("id", "settings-button")
-    _settings_close_button_locator = ("id", "settings-close")
-    _check_fb_span_locator = ("id", "span-check-fb")
-    _contacts_status_message = ("id", "statusMsg")
+    _loading_overlay_locator = ('id', 'loading-overlay')
+    _contacts_items_locator = ('css selector', 'li.contact-item')
+    _settings_button_locator = ('id', 'settings-button')
+    _settings_close_button_locator = ('id', 'settings-close')
+    _check_fb_span_locator = ('id', 'span-check-fb')
 
     # facebook section
     _facebook_login_iframe_locator = ('css selector', 'iframe[data-url*="m.facebook.com/login.php"]', 60)
     _facebook_import_iframe_locator = ('css selector', 'iframe[src="fb_import.html"]', 300)
-    _facebook_login_name_locator = ("css selector", "div#u_0_0 input")
-    _facebook_login_pw_locator = ("css selector", "div#u_0_1 input")
-    _facebook_login_button_locator = ("css selector", "button[name=login]")
-    _facebook_friends_check_items_locator = ("css selector", "li.block-item")
-    _facebook_friends_check_items_name_locator = ("css selector", "li.block-item p")
-    _facebook_friends_check_items_inputs_locator = ("css selector", "li.block-item label input")
-    _facebook_friends_import_button_locator = ("id", "import-action")
-    _facebook_contacts_remove_button_locator = ("css selector", "form#confirmation-message menu button.danger")
+    _facebook_login_name_locator = ('css selector', 'div#u_0_0 input')
+    _facebook_login_password_locator = ('css selector', 'div#u_0_1 input')
+    _facebook_login_button_locator = ('css selector', 'button[name=login]')
+    _facebook_friends_check_items_locator = ('css selector', 'li.block-item')
+    _facebook_friends_check_items_name_locator = ('css selector', 'li.block-item p')
+    _facebook_friends_check_items_inputs_locator = ('css selector', 'li.block-item label input')
+    _facebook_friends_import_button_locator = ('id', 'import-action')
+    _facebook_contacts_remove_button_locator = ('css selector', 'form#confirmation-message menu button.danger')
 
     def setUp(self):
         GaiaTestCase.setUp(self)
-        # this test should have wifi connection and facebook information
-        self.assertTrue(len(self.testvars['wifi']) > 0, "No wifi setting in testvars.")
-        self.assertTrue(len(self.testvars['facebook']['username']) > 0, "No facebook username setting in testvars.")
-        self.assertTrue(len(self.testvars['facebook']['password']) > 0, "No facebook password setting in testvars.")
+        # this test should have facebook information
+        facebook_credential = self.testvars.get('facebook')
+        self.assertTrue(facebook_credential and facebook_credential.get('username'), "No facebook username setting in testvars.")
+        self.assertTrue(facebook_credential and facebook_credential.get('password'), "No facebook password setting in testvars.")
 
         # enable wifi
         self.data_layer.enable_wifi()
@@ -40,7 +39,7 @@ class TestContacts(GaiaTestCase):
 
         # launch the Contacts app
         self.app = self.apps.launch('Contacts')
-        self.wait_for_element_not_displayed(*self._loading_overlay)
+        self.wait_for_element_not_displayed(*self._loading_overlay_locator)
 
     def create_contact_locator(self, contact):
         return ('css selector', ".contact-item p[data-search^='%s']" % contact)
@@ -73,10 +72,10 @@ class TestContacts(GaiaTestCase):
         # login to facebook, due to the permission-allow page only display once, skip this step here
         self.wait_for_element_displayed(*self._facebook_login_name_locator)
         fb_name = self.marionette.find_element(*self._facebook_login_name_locator)
-        fb_pw = self.marionette.find_element(*self._facebook_login_pw_locator)
+        fb_password = self.marionette.find_element(*self._facebook_login_password_locator)
         fb_login = self.marionette.find_element(*self._facebook_login_button_locator)
         fb_name.send_keys(self.testvars['facebook']['username'])
-        fb_pw.send_keys(self.testvars['facebook']['password'])
+        fb_password.send_keys(self.testvars['facebook']['password'])
         self.marionette.tap(fb_login)
         # do it as soon as possible, or self.marionette.switch_to_frame() will throw exception...
         self.marionette.switch_to_frame()
@@ -86,17 +85,16 @@ class TestContacts(GaiaTestCase):
         facebook_import_iframe = self.wait_for_element_present(*self._facebook_import_iframe_locator)
         self.marionette.switch_to_frame(facebook_import_iframe)
         # select one friend (first) from facebook
-        contact_name = ""
         self.wait_for_element_displayed(*self._facebook_friends_check_items_locator)
         facebook_friends_check_items = self.marionette.find_elements(*self._facebook_friends_check_items_locator)
         facebook_friends_check_items_inputs = self.marionette.find_elements(*self._facebook_friends_check_items_inputs_locator)
-        # Assume that ther will be more than 0 friends
+        # Assume that there will be more than 0 friends in facebook account
+        self.assertTrue(len(facebook_friends_check_items) > 0, 'Expect more than 0 friends in facebook account.')
         self.marionette.tap(facebook_friends_check_items[0])
         contact_name_item = self.marionette.find_element(*self._facebook_friends_check_items_name_locator)
         contact_name = contact_name_item.text
         facebook_friends_import_button = self.marionette.find_element(*self._facebook_friends_import_button_locator)
         self.marionette.tap(facebook_friends_import_button)
-        # time issue, need to wait device connect to fb...
 
         # switch to contacts app
         self.marionette.switch_to_frame()
@@ -108,10 +106,10 @@ class TestContacts(GaiaTestCase):
         post_import_contact_items = self.marionette.find_elements(*self._contacts_items_locator)
         post_import_contact_items_number = len(post_import_contact_items)
 
-        # the name of contact should be the same as facebook's
-        self.assertTrue(contact_item.text == contact_name, 'Actual name was: "' + contact_item.text + '", not "' + contact_name + '".')
         # the amount of contact items should increase
-        self.assertTrue((pre_import_contact_items_number + 1) == post_import_contact_items_number, 'The amount of contacts was: "' + str(post_import_contact_items_number) + '", not "' + str(pre_import_contact_items_number + 1) + '".')
+        self.assertEqual((pre_import_contact_items_number + 1), post_import_contact_items_number, 'The amount of contacts should increase.')
+        # the name of contact should be the same as facebook's
+        self.assertEqual(contact_item.text, contact_name, 'The name of contact should be the same as facebook.')
 
         # prepare to remove facebook contacts
         self.wait_for_element_displayed(*self._settings_button_locator)
@@ -143,4 +141,4 @@ class TestContacts(GaiaTestCase):
         post_remove_contact_items_number = len(post_remove_contact_items)
 
         # the amount of contact items should decrease
-        self.assertTrue(pre_remove_contact_items_number == (post_remove_contact_items_number + 1), 'The amount of contacts was: "' + str(pre_remove_contact_items_number) + '", not "' + str(post_remove_contact_items_number + 1) + '".')
+        self.assertEqual(pre_remove_contact_items_number, (post_remove_contact_items_number + 1), 'The amount of contacts should decrease.')
