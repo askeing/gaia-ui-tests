@@ -137,6 +137,7 @@ class TestContacts(GaiaTestCase):
         self.marionette.tap(settings_close_button)
 
         # get the contact items' number after remove facebook contacts
+        self.wait_for_element_displayed(*self._settings_button_locator)
         post_remove_contact_items = self.marionette.find_elements(*self._contacts_items_locator)
         post_remove_contact_items_number = len(post_remove_contact_items)
 
