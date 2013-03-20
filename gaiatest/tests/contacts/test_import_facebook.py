@@ -33,9 +33,10 @@ class TestContacts(GaiaTestCase):
         self.assertTrue(facebook_credential and facebook_credential.get('username'), "No facebook username setting in testvars.")
         self.assertTrue(facebook_credential and facebook_credential.get('password'), "No facebook password setting in testvars.")
 
-        # enable wifi
-        self.data_layer.enable_wifi()
-        self.data_layer.connect_to_wifi(self.testvars['wifi'])
+        # enable wifi then connect
+        if self.wifi:
+            self.data_layer.enable_wifi()
+            self.data_layer.connect_to_wifi(self.testvars['wifi'])
 
         # launch the Contacts app
         self.app = self.apps.launch('Contacts')
