@@ -70,7 +70,9 @@ class TestContacts(GaiaTestCase):
         facebook_login_iframe = self.wait_for_element_present(*self._facebook_login_iframe_locator)
         self.marionette.switch_to_frame(facebook_login_iframe)
 
-        # login to facebook, due to the permission-allow page only display once, skip this step here
+        # Login to facebook, due to the permission-allow page only display once, skip this step here.
+        # The permission-allow page will be displayed for asking the permission of friend-list at first time.
+        # After click allow, this setting will be stored into facebook account settings. so the device doesn't display the page next time.
         self.wait_for_element_displayed(*self._facebook_login_name_locator)
         fb_name = self.marionette.find_element(*self._facebook_login_name_locator)
         fb_password = self.marionette.find_element(*self._facebook_login_password_locator)
