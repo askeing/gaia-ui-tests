@@ -53,9 +53,8 @@ class TestContacts(GaiaTestCase):
         """
         self.wait_for_element_displayed(*self._settings_button_locator)
 
-        # get the contact items' number before import facebook contacts
-        pre_import_contact_items = self.marionette.find_elements(*self._contacts_items_locator)
-        pre_import_contact_items_number = len(pre_import_contact_items)
+        # before import facebook contacts, there is no contact
+        pre_import_contact_items_number = 0
 
         # navigate to settings page
         contact_settings_button = self.marionette.find_element(*self._settings_button_locator)
