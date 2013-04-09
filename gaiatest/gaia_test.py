@@ -141,7 +141,7 @@ class GaiaData(object):
         result = self.marionette.execute_async_script('return GaiaDataLayer.insertContact(%s);' % json.dumps(contact), special_powers=True)
         assert result, 'Unable to insert contact %s' % contact
 
-    def remove_all_contacts(self, default_script_timeout):
+    def remove_all_contacts(self, default_script_timeout=60000):
         self.marionette.switch_to_frame()
         self.marionette.set_script_timeout(max(default_script_timeout, 1000 * len(self.all_contacts)))
         result = self.marionette.execute_async_script('return GaiaDataLayer.removeAllContacts();', special_powers=True)
@@ -173,6 +173,10 @@ class GaiaData(object):
         self.marionette.switch_to_frame()
         result = self.marionette.execute_async_script("return GaiaDataLayer.disableCellData()", special_powers=True)
         assert result, 'Unable to disable cell data'
+
+    @property
+    def is_cell_data_connected(self):
+        return self.marionette.execute_script("return GaiaDataLayer.isCellDataConnected()")
 
     def enable_cell_roaming(self):
         self.set_setting('ril.data.roaming_enabled', True)
@@ -235,6 +239,10 @@ class GaiaData(object):
     def delete_all_alarms(self):
         self.marionette.execute_script('GaiaDataLayer.deleteAllAlarms();')
 
+    def delete_all_call_log_entries(self):
+        """The call log needs to be open and focused in order for this to work."""
+        self.marionette.execute_script('window.wrappedJSObject.RecentsDBManager.deleteAll();')
+
     def kill_active_call(self):
         self.marionette.execute_script("var telephony = window.navigator.mozTelephony; " +
                                        "if(telephony.active) telephony.active.hangUp();")
@@ -268,6 +276,10 @@ class GaiaDevice(object):
     @property
     def is_android_build(self):
         return 'Android' in self.marionette.session_capabilities['platform']
+
+    @property
+    def has_mobile_connection(self):
+        return self.marionette.execute_script('return window.navigator.mozMobileConnection !== undefined')
 
     def push_file(self, source, count=1, destination='', progress=None):
         if not destination.count('.') > 0:
@@ -330,7 +342,7 @@ class GaiaTestCase(MarionetteTestCase):
         self.lockscreen = LockScreen(self.marionette)
         self.apps = GaiaApps(self.marionette)
         self.data_layer = GaiaData(self.marionette)
-        self.keyboard = Keyboard(self.marionette)
+        self.keyboard = Keyboard(self.marionette, self)
 
         # wifi is true if testvars includes wifi details and wifi manager is defined
         self.wifi = self.testvars and \
@@ -352,6 +364,9 @@ class GaiaTestCase(MarionetteTestCase):
         # Change language back to English
         self.data_layer.set_setting("language.current", "en-US")
 
+        # Change timezone back to PST
+        self.data_layer.set_setting("time.timezone", "America/Los_Angeles")
+
         # restore settings from testvars
         [self.data_layer.set_setting(name, value) for name, value in self.testvars.get('settings', {}).items()]
 
@@ -368,7 +383,8 @@ class GaiaTestCase(MarionetteTestCase):
         self.data_layer.set_setting('ril.radio.disabled', False)
 
         # disable carrier data connection
-        self.data_layer.disable_cell_data()
+        if self.device.has_mobile_connection:
+            self.data_layer.disable_cell_data()
 
         if self.wifi:
             # forget any known networks
@@ -497,6 +513,10 @@ class GaiaTestCase(MarionetteTestCase):
                 traceback.print_exc()
 
             # settings
+            # Switch to top frame in case we are in a 3rd party app
+            # There is no more debug gathering is not specific to the app
+            self.marionette.switch_to_frame()
+
             try:
                 with open(os.path.join(debug_path, '%s_settings.json' % test_name), 'w') as f:
                     f.write(json.dumps(self.data_layer.all_settings))
@@ -524,7 +544,8 @@ class Keyboard(object):
 
     _button_locator = ('css selector', 'button.keyboard-key[data-keycode="%s"]')
 
-    def __init__(self, marionette):
+    def __init__(self, marionette, GaiaTestCase):
+        self.testcase = GaiaTestCase
         self.marionette = marionette
 
     def _switch_to_keyboard(self):
@@ -538,6 +559,7 @@ class Keyboard(object):
         return (self._button_locator[0], self._button_locator[1] % val)
 
     def _tap(self, val):
+        self.testcase.wait_for_element_displayed(*self._key_locator(val))
         key = self.marionette.find_element(*self._key_locator(val))
         self.marionette.tap(key)
 
