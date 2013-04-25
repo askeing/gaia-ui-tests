@@ -405,6 +405,7 @@ class GaiaTestCase(MarionetteTestCase):
 
         # enable the device radio, disable Airplane mode
         self.data_layer.set_setting('ril.radio.disabled', False)
+        self.wait_for_condition(lambda m: m.execute_script('return window.navigator.mozMobileConnection.voice.connected') == True)
 
         # disable carrier data connection
         if self.device.has_mobile_connection:
