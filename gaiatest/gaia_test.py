@@ -174,6 +174,11 @@ class GaiaData(object):
     def set_volume(self, value):
         self.set_setting('audio.volume.master', value)
 
+    def enable_radio(self):
+        self.marionette.switch_to_frame()
+        result = self.marionette.execute_async_script("return GaiaDataLayer.enableRadio()", special_powers=True)
+        assert result, 'Unable to enable radio'
+
     @property
     def is_cell_data_enabled(self):
         return self.get_setting('ril.data.enabled')
@@ -383,7 +388,7 @@ class GaiaTestCase(MarionetteTestCase):
 
         if self.data_layer.get_setting('ril.radio.disabled'):
             # enable the device radio, disable Airplane mode
-            self.data_layer.set_setting('ril.radio.disabled', False)
+            self.data_layer.enable_radio()
 
         # disable passcode before restore settings from testvars
         self.data_layer.set_setting('lockscreen.passcode-lock.code', '1111')

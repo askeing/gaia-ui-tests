@@ -272,6 +272,27 @@ var GaiaDataLayer = {
     return window.navigator.mozTelephony.active.state;
   },
 
+  enableRadio: function() {
+    var manager = window.navigator.mozMobileConnection;
+
+    if (!manager.voice.connected) {
+      waitFor(
+        function() {
+          console.log('radio enabled');
+          marionetteScriptFinished(true);
+        },
+        function() {
+          return manager.voice.connected;
+        }
+      );
+      this.setSetting('ril.radio.disabled', false, false);
+    }
+    else {
+      console.log('radio already connected');
+      marionetteScriptFinished(true);
+    }
+  },
+
   connectToCellData: function() {
     var manager = window.navigator.mozMobileConnection;
 
