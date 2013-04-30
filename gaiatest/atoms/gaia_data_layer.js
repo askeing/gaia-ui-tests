@@ -355,6 +355,9 @@ var GaiaDataLayer = {
             marionetteScriptFinished(true);
           },
           function() {
+            /* TODO
+             * this function will try to switch 'ril.radio.disabled', now we do not find appropriate value to determinate it.
+             */
             return manager.voice.connected;
           }
         );
