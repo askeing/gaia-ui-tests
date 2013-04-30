@@ -345,24 +345,26 @@ var GaiaDataLayer = {
   },
 
   enableRadio: function() {
-    var manager = window.navigator.mozMobileConnection;
-
-    if (!manager.voice.connected) {
-      waitFor(
-        function() {
-          console.log('radio enabled');
-          marionetteScriptFinished(true);
-        },
-        function() {
-          return manager.voice.connected;
-        }
-      );
-      this.setSetting('ril.radio.disabled', false, false);
-    }
-    else {
-      console.log('radio already connected');
-      marionetteScriptFinished(true);
-    }
+    var self = this;
+    this.getSetting('ril.radio.disabled', function(aRadioDisabled) {
+      var manager = window.navigator.mozMobileConnection;
+        if (aRadioDisabled) {
+        waitFor(
+          function() {
+            console.log('radio enabled');
+            marionetteScriptFinished(true);
+          },
+          function() {
+            return manager.voice.connected;
+          }
+        );
+        self.setSetting('ril.radio.disabled', false, false);
+      }
+      else {
+        console.log('radio already connected');
+        marionetteScriptFinished(true);
+      }
+    });
   },
 
   connectToCellData: function() {
