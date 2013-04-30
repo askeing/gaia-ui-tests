@@ -21,15 +21,22 @@ class GaiaTestOptions(MarionetteTestOptions):
                          dest='restart',
                          default=False,
                          help='restart target instance between tests')
+        group.add_option('--skip-all-warning',
+                         action='store_true',
+                         dest='skip_all_warning',
+                         default=False,
+                         help='skip all warning message. https://developer.mozilla.org/en-US/docs/Gaia_Test_Runner#Risks')
 
 
 class GaiaTestRunner(MarionetteTestRunner):
 
     def __init__(self, **kwargs):
+        skip_all_warning = kwargs.pop('skip_all_warning', False)
+
         MarionetteTestRunner.__init__(self, **kwargs)
 
         width = 80
-        if not self.testvars.get('acknowledged_risks') is True:
+        if (not self.testvars.get('acknowledged_risks') is True) and (not skip_all_warning is True):
             url = 'https://developer.mozilla.org/en-US/docs/Gaia_Test_Runner#Risks'
             heading = 'Acknowledge risks'
             message = 'These tests are destructive and will remove data from the target Firefox OS instance as well ' \
@@ -40,7 +47,7 @@ class GaiaTestRunner(MarionetteTestRunner):
             print url
             print '*' * width + '\n'
             exit()
-        if not self.testvars.get('skip_warning') is True:
+        if (not self.testvars.get('skip_warning') is True) and (not skip_all_warning is True):
             delay = 30
             heading = 'Warning'
             message = 'You are about to run destructive tests against a Firefox OS instance. These tests ' \
