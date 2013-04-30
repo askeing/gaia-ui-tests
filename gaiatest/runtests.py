@@ -25,7 +25,7 @@ class GaiaTestOptions(MarionetteTestOptions):
                          action='store_true',
                          dest='skip_all_warning',
                          default=False,
-                         help='skip all warning message. https://developer.mozilla.org/en-US/docs/Gaia_Test_Runner#Risks')
+                         help='skip all warning messages. https://developer.mozilla.org/en-US/docs/Gaia_Test_Runner#Risks')
 
 
 class GaiaTestRunner(MarionetteTestRunner):
