@@ -7,6 +7,8 @@ import json
 import os
 import sys
 import time
+import datetime
+import logging
 import traceback
 
 from marionette import MarionetteTestCase
@@ -402,6 +404,14 @@ class GaiaTestCase(MarionetteTestCase):
     def __init__(self, *args, **kwargs):
         self.restart = kwargs.pop('restart', False)
         MarionetteTestCase.__init__(self, *args, **kwargs)
+        ### Print time for testing
+        logger = logging.getLogger('Gaiatest')
+        if len(logger.handlers) <= 0:
+            logger.setLevel(logging.INFO)
+            logger.addHandler(logging.StreamHandler())
+        now = datetime.datetime.now()
+        logger.info(now.strftime('%Y-%m-%d %H:%M:%S'))
+        ### Print time for testing
 
     def setUp(self):
         MarionetteTestCase.setUp(self)
