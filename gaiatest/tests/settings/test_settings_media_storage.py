@@ -11,9 +11,9 @@ class TestSettingsMediaStorage(GaiaTestCase):
     _media_storage_locator = ('id', 'menuItem-mediaStorage')
 
     # Media storage locators
-    _music_space_locator = ('css selector', '#music-space > a > .size')
-    _pictures_space_locator = ('css selector', '#pictures-space > a > .size')
-    _movies_space_locator = ('css selector', '#videos-space > a > .size')
+    _music_space_locator = ('css selector', '.color-music > a > .size')
+    _pictures_space_locator = ('css selector', '.color-pictures > a > .size')
+    _movies_space_locator = ('css selector', '.color-videos > a > .size')
 
     def test_settings_media_storage(self):
 
@@ -45,7 +45,7 @@ class TestSettingsMediaStorage(GaiaTestCase):
         movies = self.marionette.find_element(*self._movies_space_locator)
 
         # Check that media storage has updated to reflect the newly pushed media
-        self.assertEqual(music.text, '241 KB')
+        self.assertEqual(music.text, '120 KB')
         self.assertEqual(pictures.text, '348 KB')
         self.assertEqual(movies.text, '120 KB')
 
@@ -59,8 +59,8 @@ class TestSettingsMediaStorage(GaiaTestCase):
         media_storage_item = self.marionette.find_element(*self._media_storage_locator)
 
         # Tap on 'Media storage'
-        self.marionette.execute_script("arguments[0].scrollIntoView(false);", [media_storage_item])
-        self.marionette.tap(media_storage_item)
+        media_storage_item.tap()
+        self.wait_for_condition(lambda m: media_storage_item.location['x'] + media_storage_item.size['width'] == 0)
 
         self.wait_for_element_displayed(*self._music_space_locator)
         self.wait_for_element_displayed(*self._pictures_space_locator)

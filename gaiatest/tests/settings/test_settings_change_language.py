@@ -10,7 +10,8 @@ class TestChangeLanguage(GaiaTestCase):
     # Language settings locators
     _settings_header_text_locator = ('css selector', '#root > header > h1')
     _language_settings_locator = ('id', 'menuItem-languageAndRegion')
-    _select_language_locator = ('css selector', '#languages li:nth-child(1) .fake-select button')
+    _language_section_locator = ('id', 'languages')
+    _select_language_locator = ('css selector', '#languages li:nth-child(2) .fake-select button')
     _back_button_locator = ('css selector', ".current header > a")
 
     def setUp(self):
@@ -27,18 +28,22 @@ class TestChangeLanguage(GaiaTestCase):
         language_item = self.marionette.find_element(*self._language_settings_locator)
 
         # Select Language
-        self.marionette.tap(language_item)
+        # TODO bug 878017 - remove the explicit scroll once bug is fixed
+        self.marionette.execute_script("arguments[0].scrollIntoView(false);", [language_item])
+        language_item.tap()
+        self.wait_for_condition(lambda m: language_item.location['x'] + language_item.size['width'] == 0)
 
+        self.wait_for_element_displayed(*self._language_section_locator)
         self.wait_for_element_displayed(*self._select_language_locator)
 
         select_box = self.marionette.find_element(*self._select_language_locator)
-        select_box.click()
+        select_box.tap()
 
         self._select(u'Fran\u00E7ais')
 
         # Go back to Settings menu
         go_back = self.marionette.find_element(*self._back_button_locator)
-        self.marionette.tap(go_back)
+        go_back.tap()
 
         after_language_change = self.marionette.find_element(*self._settings_header_text_locator).text
 
@@ -61,9 +66,11 @@ class TestChangeLanguage(GaiaTestCase):
         # Loop options until we find the match
         for option in options:
             if option.text == match_string:
+                # TODO: remove the explicit scroll once bug 833370 is fixed
+                self.marionette.execute_script("arguments[0].scrollIntoView(false);", [option])
                 option.click()
                 break
 
-        self.marionette.tap(close_button)
+        close_button.tap()
 
         self.marionette.switch_to_frame(self.app.frame)

@@ -227,6 +227,22 @@ var GaiaApps = {
   },
 
   /**
+   * Returns the currently displayed app.
+   */
+  displayedApp: function() {
+    let windowManager = window.wrappedJSObject.WindowManager;
+    let runningApps = windowManager.getRunningApps();
+    let origin = windowManager.getDisplayedApp();
+    console.log("app with origin '" + origin + "' is displayed");
+    let app = runningApps[origin];
+    let result = {frame: app.frame.firstChild,
+      src: app.iframe.src,
+      name: app.name,
+      origin: origin};
+    marionetteScriptFinished(result);
+  },
+
+  /**
    * Uninstalls the app with the specified name.
    */
   uninstallWithName: function(name) {
@@ -235,5 +251,4 @@ var GaiaApps = {
       marionetteScriptFinished(false);
     });
   }
-
 };
