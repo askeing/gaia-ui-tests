@@ -81,6 +81,11 @@ class GaiaTestOptions(MarionetteTestOptions):
                          dest='restart',
                          default=False,
                          help='restart target instance between tests')
+        group.add_option('--no-cleanup',
+                         action='store_true',
+                         dest='no_cleanup',
+                         default=False,
+                         help='do not cleanup the contacts, settings and media files between tests')
         group.add_option('--html-output',
                          action='store',
                          dest='html_output',

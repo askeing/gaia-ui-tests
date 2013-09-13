@@ -420,6 +420,7 @@ class GaiaTestCase(MarionetteTestCase):
 
     def __init__(self, *args, **kwargs):
         self.restart = kwargs.pop('restart', False)
+        self.no_cleanup = kwargs.pop('no_cleanup', False)
         MarionetteTestCase.__init__(self, *args, **kwargs)
 
     def setUp(self):
@@ -447,7 +448,8 @@ class GaiaTestCase(MarionetteTestCase):
         from gaiatest.apps.keyboard.app import Keyboard
         self.keyboard = Keyboard(self.marionette)
 
-        self.cleanUp()
+        if not self.no_cleanup:
+            self.cleanUp()
 
     def cleanUp(self):
         # remove media
